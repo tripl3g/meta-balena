@@ -1,6 +1,7 @@
 Change log
 -----------
 
+* Resinhup script fixes [Gergely]
 * Include fsck.vfat in resinOS [Will]
 * Update supervisor to v4.3.1 [Pablo]
 * Add BeagleBone memory hack to script to resinhup [Gergely]
