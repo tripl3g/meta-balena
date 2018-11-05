@@ -1,6 +1,15 @@
 Change log
 -----------
 
+# v2.25.0
+## (2018-11-05)
+
+* Update supported modems list [Florin Sarbu]
+* Generate ssh host key at first boot (not at first connection) [Andrei Gherzan]
+* Fix extraneous space in kernel-resin.bbclass config [Florin Sarbu]
+* Drop obsolete eval from kernel-resin's do_kernel_resin_reconfigure [Florin Sarbu]
+* Add SyslogIdentifier for balena and resin-supervisor healthdog services [Matthew McGinn]
+
 # v2.24.1
 ## (2018-11-01)
 
