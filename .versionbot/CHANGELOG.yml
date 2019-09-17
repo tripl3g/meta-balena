@@ -1,4 +1,22 @@
 - commits:
+    - subject: 'contributing-device-support.md: update old names and URL links'
+      hash: 9c4ac565073040c9232aa783e61e020931a04244
+      body: |
+        This updates old resin names to balena in the document.
+        This includes changing "intel" to genericx86-64. Some names like
+        resin-image is left unchanged because they are not updated in the
+        source code.
+
+        Also updates URL links to Yocto documentations to the "current" version.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Bumsik Kim k.bumsik@gmail.com
+        signed-off-by: Bumsik Kim k.bumsik@gmail.com
+      author: Bumsik Kim
+  version: 2.39.1
+  date: 2019-09-17T03:24:37.082Z
+- commits:
     - subject: 'usb-modeswitch-data: Switch Huawei E3372 12d1:1f01 to mbim mode'
       hash: bb672725f4460402af64ecb7d74d33526f5ed7c1
       body: |

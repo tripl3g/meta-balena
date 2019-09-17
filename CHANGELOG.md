@@ -1,6 +1,11 @@
 Change log
 -----------
 
+# v2.39.1
+## (2019-09-17)
+
+* contributing-device-support.md: update old names and URL links [Bumsik Kim]
+
 # v2.39.0
 ## (2019-07-31)
 
