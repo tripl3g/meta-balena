@@ -5,6 +5,7 @@ SRC_URI_append = " \
     file://77-mm-huawei-configuration.rules \
     file://mm-huawei-configuration-switch.sh \
     file://ModemManager.conf.systemd \
+    file://base-bearer-avoid-connchecks-stats-while.patch \
 "
 
 PACKAGECONFIG_remove = "polkit"

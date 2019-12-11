@@ -1,0 +1,97 @@
+From b2dbbd95bcd5ddd4aceb307ebabe93fe641e4074 Mon Sep 17 00:00:00 2001
+From: Aleksander Morgado <aleksander@aleksander.es>
+Date: Wed, 11 Dec 2019 15:46:09 +0100
+Subject: [PATCH] base-bearer: avoid conncheck or stats update while
+ disconnecting
+
+We don't want the connection status checks to interfere with the
+disconnection logic, e.g. if they're both using the same TTY for both
+things.
+
+E.g. the CGACT? from the conncheck gets in the way of the
+disconnection logic:
+
+    <debug> [1576037519.710684] Flashing data port (ttyUSB1)...
+    <debug> [1576037519.710740] (ttyUSB1): port attributes not fully set
+    <debug> [1576037520.287636] (ttyUSB1) device open count is 3 (open)
+    <debug> [1576037520.287804] (ttyUSB1): --> 'AT+CGACT?<CR>'
+    <debug> [1576037520.711067] (ttyUSB1) device open count is 2 (close)
+    <debug> [1576037520.711127] (ttyUSB1): running init sequence...
+    <debug> [1576037520.711231] PDP disconnection already sent
+    <debug> [1576037520.711263] Disconnected bearer '/org/freedesktop/ModemManager1/Bearer/0'
+
+Instead, fully skip all conncheck and stat updates as long as the
+modem is not connected. The actual conncheck and stat update timeouts
+will be removed once completely disconnected, as it was before.
+---
+ src/mm-base-bearer.c | 30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
+
+diff --git a/src/mm-base-bearer.c b/src/mm-base-bearer.c
+index 222e123d..a6043d1e 100644
+--- a/src/mm-base-bearer.c
++++ b/src/mm-base-bearer.c
+@@ -195,20 +195,22 @@ static gboolean
+ connection_monitor_cb (MMBaseBearer *self)
+ {
+     /* If the implementation knows how to load connection status, run it */
+-    MM_BASE_BEARER_GET_CLASS (self)->load_connection_status (
+-        self,
+-        (GAsyncReadyCallback)load_connection_status_ready,
+-        NULL);
++    if (self->priv->status == MM_BEARER_STATUS_CONNECTED)
++        MM_BASE_BEARER_GET_CLASS (self)->load_connection_status (
++            self,
++            (GAsyncReadyCallback)load_connection_status_ready,
++            NULL);
+     return G_SOURCE_CONTINUE;
+ }
+ 
+ static gboolean
+ initial_connection_monitor_cb (MMBaseBearer *self)
+ {
+-    MM_BASE_BEARER_GET_CLASS (self)->load_connection_status (
+-        self,
+-        (GAsyncReadyCallback)load_connection_status_ready,
+-        NULL);
++    if (self->priv->status == MM_BEARER_STATUS_CONNECTED)
++        MM_BASE_BEARER_GET_CLASS (self)->load_connection_status (
++            self,
++            (GAsyncReadyCallback)load_connection_status_ready,
++            NULL);
+ 
+     /* Add new monitor timeout at a higher rate */
+     self->priv->connection_monitor_id = g_timeout_add_seconds (BEARER_CONNECTION_MONITOR_TIMEOUT,
+@@ -305,6 +307,10 @@ reload_stats_ready (MMBaseBearer *self,
+ static gboolean
+ stats_update_cb (MMBaseBearer *self)
+ {
++    /* Ignore stats update if we're not connected */
++    if (self->priv->status != MM_BEARER_STATUS_CONNECTED)
++        return G_SOURCE_CONTINUE;
++
+     /* If the implementation knows how to update stat values, run it */
+     if (!self->priv->reload_stats_unsupported &&
+         MM_BASE_BEARER_GET_CLASS (self)->reload_stats &&
+@@ -411,15 +417,15 @@ bearer_update_status_connected (MMBaseBearer *self,
+         self->priv->ignore_disconnection_reports = TRUE;
+     }
+ 
++    /* Update the property value */
++    self->priv->status = MM_BEARER_STATUS_CONNECTED;
++    g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_STATUS]);
++
+     /* Start statistics */
+     bearer_stats_start (self);
+ 
+     /* Start connection monitor, if supported */
+     connection_monitor_start (self);
+-
+-    /* Update the property value */
+-    self->priv->status = MM_BEARER_STATUS_CONNECTED;
+-    g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_STATUS]);
+ }
+ 
+ /*****************************************************************************/
+-- 
+2.22.2
