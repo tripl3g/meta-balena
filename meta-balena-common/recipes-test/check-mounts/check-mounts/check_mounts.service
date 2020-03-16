@@ -1,0 +1,12 @@
+[Unit]
+Description=Check mounts consistency test
+Requires=resin-boot.service resin-state.service resin-data.service
+After=resin-boot.service resin-state.service resin-data.service rollback-health.service
+
+[Service]
+Type=oneshot
+ExecStart=@BASE_BINDIR@/sh @BINDIR@/check_mounts.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
