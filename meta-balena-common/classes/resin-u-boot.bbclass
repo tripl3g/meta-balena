@@ -7,8 +7,12 @@ INTEGRATION_NON_KCONFIG_PATCH = "file://resin-specific-env-integration-non-kconf
 SRC_URI_append = " \
     file://env_resin.h \
     ${@bb.utils.contains('UBOOT_KCONFIG_SUPPORT', '1', '${INTEGRATION_KCONFIG_PATCH}', '${INTEGRATION_NON_KCONFIG_PATCH}', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'development-image', 'file://common-Disable-u-boot-console.patch', 'file://common-Disable-u-boot-console.patch', d)} \
     "
 
+## TODO: Remove above patch for development images,
+## we reworked the patch to drop the need for configs
+## so we need to see if all build once more
 python __anonymous() {
     # Use different integration patch based on u-boot Kconfig support
     kconfig_support = d.getVar('UBOOT_KCONFIG_SUPPORT', True)
