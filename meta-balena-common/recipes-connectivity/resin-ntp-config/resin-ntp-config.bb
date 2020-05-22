@@ -11,7 +11,7 @@ S = "${WORKDIR}"
 
 inherit allarch
 
-RDEPENDS_${PN} = "chrony chronyc"
+RDEPENDS_${PN} = "chrony chronyc glibc-utils"
 
 do_install() {
     install -d ${D}${bindir}

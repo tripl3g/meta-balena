@@ -16,8 +16,11 @@ fi
 
 if [ ! -z "$NTP_SERVERS" ]; then
 	for ntp in ${NTP_SERVERS}; do
-		/usr/bin/chronyc add server $ntp minpoll 14 maxpoll 14 || true
-		/usr/bin/chronyc burst 4/10 "$ntp" || true
+		# Resolve to an IP address in case of using NTP pools
+#		ntpsource=$(ping -c1 "${ntp}" | tr -d '():' | awk '/^PING/{print $3}')
+		ntpsource=$(/usr/bin/getent ahostsv4 "${ntp}" | tail -1 | awk '{ print $1 }')
+		/usr/bin/chronyc add server "${ntpsource}" minpoll 14 maxpoll 14 || true
+		/usr/bin/chronyc burst 4/10 "${ntpsource}" || true
 	done
 fi
 
