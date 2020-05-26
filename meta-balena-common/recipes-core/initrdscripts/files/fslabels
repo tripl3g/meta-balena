@@ -1,0 +1,29 @@
+#!/bin/sh
+
+fslabels_enabled() {
+    if [ "$bootparam_flasher" = "true" ]; then
+        info "[INFO] Flasher detected. We don't relabel when provisioning."
+        return 1
+    fi
+
+    label=$(lsblk -n -o label /dev/disk/by-partlabel/boot)
+    [ "${label}" = "resin-boot" ] && return 1
+
+    return 0
+}
+
+fslabels_run() {
+    for part in /dev/disk/by-partlabel/*
+    do
+	    case $part in
+		    */recovery) reformat $part "resin-boot" ;;
+		    */laf) reformat $part "resin-state" ;;
+		    */system) relabel $part "resin-rootA" ;;
+		    */cache) reformat $part "resin-rootB" ;;
+		    */userdata|*/USERDATA|*/UDA|*/DATAFS) reformat $part "resin-data" ;;
+		    *) ;;
+	    esac
+    done
+    udevadm trigger --action=add
+    udevadm settle
+}
